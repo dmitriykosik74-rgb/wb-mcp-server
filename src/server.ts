@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { WBClient } from "./wb-client.js";
+import { registerFeedbackTools } from "./tools/feedbacks.js";
 
 export class WBMCPServer {
   public mcpServer: McpServer;
@@ -19,7 +20,7 @@ export class WBMCPServer {
   }
 
   private registerTools(): void {
-    // Tools will be registered here in subsequent tasks
+    registerFeedbackTools(this.mcpServer, this.wbClient);
   }
 
   async start(): Promise<void> {

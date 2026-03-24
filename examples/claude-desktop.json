@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "wildberries": {
+      "command": "wb-mcp-server",
+      "env": {
+        "WB_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
