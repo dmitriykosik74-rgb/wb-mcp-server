@@ -22,8 +22,19 @@
     "agent",
     "seller"
   ],
-  "author": "",
+  "author": "Kosik Dmitriy",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmitriykosik74-rgb/wb-mcp-server.git"
+  },
+  "homepage": "https://github.com/dmitriykosik74-rgb/wb-mcp-server#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "README.ru.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
