@@ -41,6 +41,26 @@ npm install -g wb-mcp-server
 
 Готово! Теперь Claude может работать с вашим магазином на WB.
 
+> **Windows: ошибка `spawn wb-mcp-server ENOENT`**
+>
+> Если Claude Desktop не находит команду `wb-mcp-server`, используйте `npx`:
+>
+> ```json
+> {
+>   "mcpServers": {
+>     "wildberries": {
+>       "command": "npx",
+>       "args": ["-y", "wb-mcp-server"],
+>       "env": {
+>         "WB_API_TOKEN": "ваш_токен"
+>       }
+>     }
+>   }
+> }
+> ```
+>
+> Это часто случается с версией Claude Desktop из Microsoft Store, которая не видит путь к глобальным npm-пакетам.
+
 ## Доступные инструменты
 
 | Инструмент | Описание | Тип |

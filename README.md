@@ -34,6 +34,26 @@ Create an API token in your [WB Seller Dashboard](https://seller.wildberries.ru/
 }
 ```
 
+> **Windows: `spawn wb-mcp-server ENOENT` error**
+>
+> If Claude Desktop can't find the `wb-mcp-server` command, use `npx` instead:
+>
+> ```json
+> {
+>   "mcpServers": {
+>     "wildberries": {
+>       "command": "npx",
+>       "args": ["-y", "wb-mcp-server"],
+>       "env": {
+>         "WB_API_TOKEN": "your_token_here"
+>       }
+>     }
+>   }
+> }
+> ```
+>
+> This commonly happens with the Microsoft Store version of Claude Desktop, which doesn't see the global npm packages path.
+
 ## Available Tools
 
 | Tool | Description | Type |
