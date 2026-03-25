@@ -98,7 +98,7 @@ describe("feedbacks tools", () => {
 
   describe("reply_feedback", () => {
     it("sends reply successfully", async () => {
-      (client.patch as any).mockResolvedValue({});
+      (client.post as any).mockResolvedValue({});
 
       const result = await callTool(server, "reply_feedback", {
         id: "fb-1",
@@ -107,15 +107,15 @@ describe("feedbacks tools", () => {
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain("успешно");
-      expect(client.patch).toHaveBeenCalledWith(
+      expect(client.post).toHaveBeenCalledWith(
         expect.any(String),
-        "/api/v1/feedbacks",
+        "/api/v1/feedbacks/answer",
         { id: "fb-1", text: "Спасибо за отзыв!" },
       );
     });
 
     it("returns error on API failure", async () => {
-      (client.patch as any).mockRejectedValue(new WBApiError(500, "internal", "Внутренняя ошибка"));
+      (client.post as any).mockRejectedValue(new WBApiError(500, "internal", "Внутренняя ошибка"));
 
       const result = await callTool(server, "reply_feedback", {
         id: "fb-1",

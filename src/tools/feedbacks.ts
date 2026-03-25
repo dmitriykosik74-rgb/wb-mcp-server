@@ -62,11 +62,11 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
     "⚠️ ОТВЕТИТЬ на отзыв покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой. Ответ можно отредактировать только 1 раз в течение 60 дней.",
     {
       id: z.string().describe("ID отзыва (получите через get_feedbacks)"),
-      text: z.string().min(1).describe("Текст ответа на отзыв"),
+      text: z.string().min(2).max(5000).describe("Текст ответа на отзыв (2-5000 символов)"),
     },
     async (args) => {
       try {
-        await client.patch<any>(BASE_URLS.feedbacks, "/api/v1/feedbacks", {
+        await client.post<any>(BASE_URLS.feedbacks, "/api/v1/feedbacks/answer", {
           id: args.id,
           text: args.text,
         });
