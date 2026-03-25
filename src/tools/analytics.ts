@@ -104,21 +104,28 @@ export function registerAnalyticsTools(server: McpServer, client: WBClient): voi
   // get_nm_report
   server.tool(
     "get_nm_report",
-    "Детальный отчёт по товарам: просмотры карточки, добавления в корзину, заказы, выкупы, конверсии. Данные за указанный период.",
+    "Детальный отчёт по товарам: просмотры карточки, добавления в корзину, заказы, выкупы, конверсии. Данные за указанный период. Лимит: 3 запроса в минуту.",
     {
-      beginDate: z.string().describe("Начало периода, ISO, например 2024-01-01"),
-      endDate: z.string().describe("Конец периода, ISO, например 2024-01-31"),
+      beginDate: z.string().describe("Начало текущего периода, ISO, например 2024-01-01"),
+      endDate: z.string().describe("Конец текущего периода, ISO, например 2024-01-31"),
       page: z.number().default(1).describe("Номер страницы"),
+      nmIds: z.array(z.number()).optional().describe("Фильтр по артикулам WB (необязательно)"),
     },
     async (args) => {
       try {
-        const data = await client.post<any>(BASE_URLS.analytics, "/api/v2/nm-report/detail", {
-          period: {
-            begin: args.beginDate,
+        const body: Record<string, any> = {
+          currentPeriod: {
+            start: args.beginDate,
             end: args.endDate,
           },
-          page: args.page,
-        });
+          pageNumber: args.page,
+          pageSize: 100,
+        };
+        if (args.nmIds && args.nmIds.length > 0) {
+          body.nmIds = args.nmIds;
+        }
+
+        const data = await client.post<any>(BASE_URLS.analytics, "/api/analytics/v3/sales-funnel/products", body);
 
         return {
           content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],

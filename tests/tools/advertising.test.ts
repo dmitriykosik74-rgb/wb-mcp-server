@@ -37,7 +37,7 @@ describe("advertising tools", () => {
           { type: 8, status: 9, count: 3, advert_list: [{ advertId: 1 }, { advertId: 2 }, { advertId: 3 }] },
         ],
       };
-      (client.post as any).mockResolvedValue(data);
+      (client.get as any).mockResolvedValue(data);
 
       const result = await callTool(server, "get_advert_list");
 
@@ -47,7 +47,7 @@ describe("advertising tools", () => {
     });
 
     it("returns error on API failure", async () => {
-      (client.post as any).mockRejectedValue(new WBApiError(500, "internal", "Ошибка сервера"));
+      (client.get as any).mockRejectedValue(new WBApiError(500, "internal", "Ошибка сервера"));
 
       const result = await callTool(server, "get_advert_list");
 
@@ -58,32 +58,37 @@ describe("advertising tools", () => {
 
   describe("get_advert_stats", () => {
     it("returns campaign stats", async () => {
-      const data = [
-        {
-          advertId: 123,
-          days: [
-            { date: "2024-01-15", views: 1000, clicks: 50, ctr: 5, cpc: 10, spend: 500, orders: 5 },
-          ],
-        },
-      ];
+      const data = {
+        clusters: [
+          { cluster: "футболка", views: 1000, clicks: 50, ctr: 5, cpc: 10 },
+        ],
+      };
       (client.post as any).mockResolvedValue(data);
 
-      const result = await callTool(server, "get_advert_stats", { campaignIds: [123] });
+      const result = await callTool(server, "get_advert_stats", {
+        from: "2024-01-15",
+        to: "2024-01-16",
+        items: [{ advert_id: 123, nm_id: 456 }],
+      });
 
       expect(result.isError).toBeUndefined();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed[0].advertId).toBe(123);
+      expect(parsed.clusters[0].views).toBe(1000);
       expect(client.post).toHaveBeenCalledWith(
         expect.any(String),
-        "/adv/v2/fullstats",
-        [123],
+        "/adv/v0/normquery/stats",
+        { from: "2024-01-15", to: "2024-01-16", items: [{ advert_id: 123, nm_id: 456 }] },
       );
     });
 
-    it("handles empty campaign list", async () => {
+    it("handles empty result", async () => {
       (client.post as any).mockResolvedValue([]);
 
-      const result = await callTool(server, "get_advert_stats", { campaignIds: [] });
+      const result = await callTool(server, "get_advert_stats", {
+        from: "2024-01-15",
+        to: "2024-01-16",
+        items: [],
+      });
 
       const parsed = JSON.parse(result.content[0].text);
       expect(parsed).toHaveLength(0);

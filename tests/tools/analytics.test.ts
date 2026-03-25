@@ -97,7 +97,7 @@ describe("analytics tools", () => {
     it("returns report data", async () => {
       const report = {
         data: {
-          cards: [{ nmID: 111, statistics: { openCardCount: 500, addToCartCount: 50 } }],
+          products: [{ nmId: 111, openCardCount: 500, addToCartCount: 50 }],
         },
       };
       (client.post as any).mockResolvedValue(report);
@@ -109,11 +109,11 @@ describe("analytics tools", () => {
       });
 
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.data.cards[0].nmID).toBe(111);
+      expect(parsed.data.products[0].nmId).toBe(111);
       expect(client.post).toHaveBeenCalledWith(
         expect.any(String),
-        "/api/v2/nm-report/detail",
-        { period: { begin: "2024-01-01", end: "2024-01-31" }, page: 1 },
+        "/api/analytics/v3/sales-funnel/products",
+        { currentPeriod: { start: "2024-01-01", end: "2024-01-31" }, pageNumber: 1, pageSize: 100 },
       );
     });
   });
