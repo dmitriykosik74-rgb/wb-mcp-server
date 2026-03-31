@@ -6,7 +6,8 @@ export const BASE_URLS = {
   feedbacks: "https://feedbacks-api.wildberries.ru",
   analytics: "https://seller-analytics-api.wildberries.ru",
   prices: "https://discounts-prices-api.wildberries.ru",
-  documents: "https://seller-analytics-api.wildberries.ru",
+  finance: "https://finance-api.wildberries.ru",
+  documents: "https://documents-api.wildberries.ru",
   feedbacksSandbox: "https://feedbacks-api-sandbox.wildberries.ru",
 } as const;
 

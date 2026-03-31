@@ -2,8 +2,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { WBClient } from "./wb-client.js";
 import { registerFeedbackTools } from "./tools/feedbacks.js";
+import { registerStatisticsTools } from "./tools/statistics.js";
 import { registerAnalyticsTools } from "./tools/analytics.js";
 import { registerAdvertisingTools } from "./tools/advertising.js";
+import { registerFinanceTools } from "./tools/finance.js";
 
 export class WBMCPServer {
   public mcpServer: McpServer;
@@ -23,8 +25,10 @@ export class WBMCPServer {
 
   private registerTools(): void {
     registerFeedbackTools(this.mcpServer, this.wbClient);
+    registerStatisticsTools(this.mcpServer, this.wbClient);
     registerAnalyticsTools(this.mcpServer, this.wbClient);
     registerAdvertisingTools(this.mcpServer, this.wbClient);
+    registerFinanceTools(this.mcpServer, this.wbClient);
   }
 
   async start(): Promise<void> {

@@ -1,327 +1,400 @@
-# TASKS.md — Пошаговые задачи для разработки wb-mcp-server
+# TASKS.md — wb-mcp-server (все версии, 22 инструмента)
 
-Этот файл содержит последовательные задачи. Выполняй их по одной.
-После каждой задачи — коммить с осмысленным сообщением.
+## Карта версий
+
+```
+v0.1.0 ✅ опубликована — 10 инструментов
+v0.2.0 🔧 MVP-блокер  — +3 = 13 инструментов
+v0.3.0 ⏳ Phase 2     — +5 = 18 инструментов
+v0.4.0 ⏳ Phase 3     — +4 = 22 инструмента
+```
 
 ---
 
-## ЗАДАЧА 1: Инициализация проекта
+## ✅ v0.1.0 — ВЫПОЛНЕНО (задачи 1-10)
 
-Создай структуру проекта wb-mcp-server согласно CLAUDE.md.
-
-1. Инициализируй npm-проект с `type: "module"` в package.json
-2. Установи зависимости:
-   - `@modelcontextprotocol/sdk` — MCP SDK
-   - `zod` — валидация
-   - Dev: `typescript`, `tsup`, `vitest`, `tsx`, `@types/node`
-3. Настрой tsconfig.json: strict mode, ESM, target ES2022, outDir dist
-4. Настрой tsup.config.ts: entry src/index.ts, format esm, dts true
-5. Создай .env.example с `WB_API_TOKEN=your_wildberries_api_token_here`
-6. Создай .gitignore (node_modules, dist, .env, *.js в корне)
-7. Создай src/config.ts:
-   - Читай WB_API_TOKEN из env (или аргумента --token)
-   - Объект BASE_URLS со всеми WB API base URLs из CLAUDE.md
-   - Типизированный конфиг
-8. Создай пустую структуру директорий: src/tools/, src/types/, src/utils/, tests/, examples/
-9. В package.json добавь scripts: build, dev, start, test
-10. Добавь bin field в package.json чтобы пакет работал как CLI: `"wb-mcp-server": "./dist/index.js"`
-
-Коммит: `feat: initial project setup with TypeScript, MCP SDK, config`
+10 инструментов опубликованы на npm:
+- feedbacks.ts: get_feedbacks, reply_feedback, get_unanswered_count, get_questions
+- statistics.ts: get_stocks, get_orders, get_sales
+- analytics.ts: get_nm_report
+- advertising.ts: get_advert_list, get_advert_stats
 
 ---
 
-## ЗАДАЧА 2: WB API клиент
+## 🔧 v0.2.0 — MVP-блокер (задачи 11-13)
 
-Создай src/wb-client.ts — единый HTTP-клиент для всех запросов к WB API.
+Нужна ДО старта wb-seller-agent. Разблокирует Reviews Agent (полный) и Finance Agent (реальный P&L).
 
-Класс `WBClient`:
-- Конструктор принимает `token: string`
-- Метод `get<T>(baseUrl: string, path: string, params?: Record<string, any>): Promise<T>` 
-- Метод `post<T>(baseUrl: string, path: string, body?: any): Promise<T>`
-- Метод `patch<T>(baseUrl: string, path: string, body?: any): Promise<T>`
-- Автоматически добавляет заголовок `Authorization: ${this.token}`
-- Автоматически добавляет `Content-Type: application/json`
-- Обработка ошибок: если HTTP status не 2xx, парсит тело ответа и выбрасывает типизированную ошибку `WBApiError` с полями code, message, status
-- Логирование: при ошибке выводи в stderr URL, статус и тело ответа (без токена!)
-
-Создай src/utils/errors.ts:
-- Класс `WBApiError extends Error` с полями httpStatus, code, detail
-- Функция `formatError(error: unknown): string` — возвращает человекочитаемую строку на русском
-
-Создай src/utils/rate-limiter.ts:
-- Простой rate limiter на основе timestamps
-- Метод `waitIfNeeded(endpoint: string, limitPerMinute: number): Promise<void>`
-- Если лимит превышен — ждёт нужное время (не выбрасывает ошибку)
-
-Коммит: `feat: WB API client with auth, error handling, rate limiting`
+После выполнения: `npm version minor` → `npm publish` → обновить Dockerfile в wb-seller-agent.
 
 ---
 
-## ЗАДАЧА 3: MCP сервер — скелет
+### ЗАДАЧА 11: reply_question
 
-Создай src/server.ts и src/index.ts — базовый MCP сервер, который стартует и отвечает на list_tools.
+Файл: `src/tools/feedbacks.ts` (добавить к существующим)
 
-src/server.ts:
-- Класс `WBMCPServer`
-- Использует `@modelcontextprotocol/sdk` Server
-- В конструкторе создаёт WBClient с токеном из конфига
-- Метод `registerTools()` — будет вызывать регистрацию из файлов tools/*
-- Метод `start()` — запускает MCP сервер через StdioServerTransport
-- Выведи в stderr при старте: `wb-mcp-server v{version} started` (version из package.json)
-
-src/index.ts:
-- Shebang `#!/usr/bin/env node`
-- Проверяет наличие WB_API_TOKEN (из env или --token аргумента)
-- Если токена нет — выводит понятную ошибку на русском и английском, exit 1
-- Создаёт и запускает WBMCPServer
-
-После этого сервер должен запускаться через `npx tsx src/index.ts` и отвечать на MCP handshake (пока без tools).
-
-Коммит: `feat: MCP server skeleton with stdio transport`
-
----
-
-## ЗАДАЧА 4: Первые tools — отзывы (feedbacks)
-
-Создай src/tools/feedbacks.ts с тремя MCP tools.
-
-### Tool: get_feedbacks
+```typescript
+name: "reply_question"
+description: "⚠️ ОТВЕТИТЬ на вопрос покупателя. ВНИМАНИЕ: отправляет реальный ответ, который увидит покупатель."
+WB Endpoint: PATCH https://feedbacks-api.wildberries.ru/api/v1/questions
+Токен: Feedbacks
 ```
-name: "get_feedbacks"
-description: "Получить список отзывов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст отзыва, оценку, дату, информацию о товаре и ответ продавца (если есть)."
-```
-Input schema (zod):
-- isAnswered: z.boolean().describe("true — отвеченные отзывы, false — неотвеченные")
-- take: z.number().min(1).max(10000).default(50).describe("Количество отзывов (макс 10000)")
-- skip: z.number().default(0).describe("Смещение для пагинации")
-- order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате")
-- nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)")
 
-WB API call: GET feedbacks-api base + /api/v1/feedbacks с query-параметрами
-
-Форматирование ответа: верни структурированный JSON с массивом отзывов, каждый содержит: id, text, productValuation, answer (text или null), createdDate, productDetails (nmId, productName, supplierArticle), userName.
-
-### Tool: reply_feedback
-```
-name: "reply_feedback"  
-description: "⚠️ ОТВЕТИТЬ на отзыв покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой. Ответ можно отредактировать только 1 раз в течение 60 дней."
-```
-Input schema:
-- id: z.string().describe("ID отзыва (получите через get_feedbacks)")
-- text: z.string().min(1).describe("Текст ответа на отзыв")
-
-WB API call: PATCH feedbacks-api base + /api/v1/feedbacks, body: { id, text }
-
-### Tool: get_unanswered_count
-```
-name: "get_unanswered_count"
-description: "Получить количество неотвеченных отзывов. Полезно для быстрой проверки: есть ли новые отзывы, требующие ответа."
-```
-No input parameters.
-WB API call: GET feedbacks-api base + /api/v1/feedbacks/count-unanswered
-
-Зарегистрируй все три инструмента в server.ts.
-
-Протестируй: запусти сервер, подключи к Claude Desktop (создай examples/claude-desktop.json с примером конфига), убедись что tools видны и get_unanswered_count возвращает число.
-
-Коммит: `feat: feedback tools — get_feedbacks, reply_feedback, get_unanswered_count`
-
----
-
-## ЗАДАЧА 5: Tools — аналитика и статистика
-
-Создай src/tools/analytics.ts с tools для аналитики.
-
-### Tool: get_stocks
-```
-name: "get_stocks"
-description: "Получить текущие остатки товаров на складах WB. Данные обновляются каждые 30 минут. Лимит: 1 запрос в минуту."
-```
-Input: dateFrom (z.string().describe("Дата начала в формате ISO, например 2024-01-01"))
-WB API: GET statistics-api base + /api/v1/supplier/stocks?dateFrom={dateFrom}
-Handle pagination: if response has 60000 items, warn that there may be more.
-
-### Tool: get_orders
-```
-name: "get_orders"
-description: "Получить список заказов. Данные хранятся до 90 дней. Лимит: 1 запрос в минуту."
-```
-Input: dateFrom (string, required), flag (z.number().optional() — 0 все с даты, 1 только обновлённые)
-WB API: GET statistics-api base + /api/v1/supplier/orders
-
-### Tool: get_sales
-```
-name: "get_sales"
-description: "Получить данные о продажах (выкупах). Включает сумму к оплате продавцу. Лимит: 1 запрос в минуту."
-```
-Input: dateFrom (string, required), flag (z.number().optional())
-WB API: GET statistics-api base + /api/v1/supplier/sales
-
-### Tool: get_nm_report
-```
-name: "get_nm_report"
-description: "Детальный отчёт по товарам: просмотры карточки, добавления в корзину, заказы, выкупы, конверсии. Данные за указанный период."
-```
-Input: 
-- beginDate: z.string().describe("Начало периода, ISO")
-- endDate: z.string().describe("Конец периода, ISO")
-- page: z.number().default(1)
-WB API: POST seller-analytics-api base + /api/v2/nm-report/detail, body: { period: { begin, end }, page }
-
-Не забудь: statistics-api endpoints имеют лимит 1 запрос в минуту — используй rate-limiter.
-
-Коммит: `feat: analytics tools — stocks, orders, sales, nm_report`
-
----
-
-## ЗАДАЧА 6: Tools — реклама
-
-Создай src/tools/advertising.ts.
-
-### Tool: get_advert_list
-```
-name: "get_advert_list"
-description: "Получить список рекламных кампаний с количеством по статусам (активные, на паузе, завершённые и т.д.)"
-```
-No required input.
-WB API: POST advert-api base + /adv/v1/promotion/count
-Returns: adverts array with type, status, count, campain IDs.
-
-### Tool: get_advert_stats
-```
-name: "get_advert_stats"
-description: "Получить подробную статистику рекламных кампаний: показы, клики, CTR, CPC, расход, заказы. Максимум 100 кампаний за запрос."
-```
-Input: campaignIds — z.array(z.number()).max(100).describe("Массив ID рекламных кампаний")
-WB API: POST advert-api base + /adv/v2/fullstats, body: array of campaign IDs
-Returns: detailed stats per campaign per day.
-
-Коммит: `feat: advertising tools — get_advert_list, get_advert_stats`
-
----
-
-## ЗАДАЧА 7: Тесты
-
-Создай тесты для каждого tool-файла в tests/tools/.
-
-Для каждого теста:
-1. Мокай WBClient (не делай реальных HTTP-запросов)
-2. Проверяй что tool корректно формирует запрос к WB API
-3. Проверяй что tool корректно парсит ответ
-4. Проверяй обработку ошибок (401, 429, 500)
-5. Проверяй валидацию входных параметров (zod)
-
-Минимум тесты для:
-- feedbacks: get_feedbacks (happy path + empty result), reply_feedback (success + error), get_unanswered_count
-- analytics: get_stocks (happy path + pagination warning), get_nm_report
-- advertising: get_advert_stats (happy path + empty campaigns)
-
-Убедись что `npm test` проходит.
-
-Коммит: `test: unit tests for all MCP tools`
-
----
-
-## ЗАДАЧА 8: README и документация
-
-### README.ru.md (основной, на русском):
-
-Структура:
-1. **Заголовок** с бейджами: npm version, license MIT, GitHub stars
-2. **Что это** — 2-3 предложения: MCP-сервер для WB API, работает с Claude Desktop, OpenClaw, любым MCP-клиентом
-3. **Быстрый старт** — 3 шага:
-   - `npm install -g wb-mcp-server`
-   - Добавь WB API токен в переменную окружения
-   - Добавь в конфиг Claude Desktop (пример JSON)
-4. **Список инструментов** — таблица: название, описание, тип (read/write)
-5. **Примеры использования** — 3-4 примера что можно спросить у Claude:
-   - "Сколько у меня неотвеченных отзывов?"
-   - "Покажи продажи за последнюю неделю"
-   - "Какие товары лучше всего конвертируются?"
-   - "Какая статистика по рекламным кампаниям?"
-6. **Получение WB API токена** — пошаговая инструкция с скриншотами (описание, скриншоты добавишь позже)
-7. **Конфигурация** — env vars, CLI args
-8. **Разработка** — как собрать и запустить локально
-9. **Contributing** — как контрибьютить
-10. **Лицензия** — MIT
-
-### README.md (английский):
-Краткая версия README.ru.md на английском.
-
-### examples/claude-desktop.json:
-```json
+Input (zod):
+```typescript
 {
-  "mcpServers": {
-    "wildberries": {
-      "command": "wb-mcp-server",
-      "env": {
-        "WB_API_TOKEN": "your_token_here"
-      }
-    }
-  }
+  id: z.string().describe("ID вопроса (из get_questions)"),
+  text: z.string().min(1).describe("Текст ответа")
 }
 ```
 
-### examples/usage.md:
-5-10 примеров промптов для Claude с wb-mcp-server на русском.
+Body: `{ id, text }`
 
-### CHANGELOG.md:
-Первая запись для v0.1.0.
+Тесты в `tests/tools/feedbacks.test.ts`:
+- happy path: успешный ответ
+- error: 401 при неверном токене
 
-### LICENSE:
-MIT license text.
-
-Коммит: `docs: README (ru + en), examples, changelog, license`
+Коммит: `feat: reply_question tool`
 
 ---
 
-## ЗАДАЧА 9: Сборка и публикация
+### ЗАДАЧА 12: get_financial_report
 
-1. Убедись что `npm run build` создаёт dist/ с рабочим JS
-2. Убедись что `node dist/index.js` запускается (и ругается на отсутствие токена)
-3. Добавь в package.json:
-   - `"files": ["dist", "README.md", "README.ru.md", "LICENSE"]`
-   - `"keywords": ["mcp", "wildberries", "wb", "marketplace", "ai", "agent", "seller"]`
-   - `"repository"` — GitHub URL
-   - `"homepage"` — GitHub URL
-4. Проверь что `npm pack` создаёт корректный tarball
-5. Добавь GitHub Actions workflow (.github/workflows/ci.yml):
-   - На push в main: lint, test, build
-   - На tag v*: publish to npm
+Файл: `src/tools/statistics.ts` (добавить к существующим)
 
-Коммит: `chore: build config, npm package setup, CI workflow`
+```typescript
+name: "get_financial_report"
+description: "Детализация отчёта реализации WB: комиссии, логистика, хранение, штрафы, сумма к оплате.
+Используй для расчёта реального P&L. Лимит: 1 запрос в минуту.
+При >100000 строк — использовать пагинацию через rrdid."
+WB Endpoint: GET https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod
+Rate limit: 1 req/min. Токен: Statistics
+```
+
+Input (zod):
+```typescript
+{
+  dateFrom: z.string().describe("Начало периода, ISO datetime, например 2026-03-01"),
+  dateTo: z.string().describe("Конец периода, ISO datetime"),
+  limit: z.number().max(100000).default(100000),
+  rrdid: z.number().default(0).describe("ID последней строки для пагинации (0 = первый запрос)"),
+  period: z.enum(["weekly", "daily"]).default("weekly")
+}
+```
+
+Ключевые поля в ответе (описать в tool description):
+- `ppvz_for_pay` — итоговая сумма к выплате
+- `delivery_rub` — логистика WB
+- `storage_fee` — хранение
+- `penalty` — штрафы
+- `commission_percent` — комиссия WB
+- `retail_amount` — розничная выручка
+
+Пагинация: если 100000 строк → следующий запрос с rrdid = rrd_id последней строки. Статус 204 = конец данных.
+
+Тесты в `tests/tools/statistics.test.ts`:
+- happy path: отчёт за период
+- pagination: 100000 строк → предупреждение
+- empty: 204 → пустой массив
+
+Коммит: `feat: get_financial_report tool`
 
 ---
 
-## ЗАДАЧА 10: Финальная проверка
+### ЗАДАЧА 13: get_seller_balance + публикация v0.2.0
 
-Выполни полный чеклист:
+Файл: `src/tools/finance.ts` (новый файл)
 
-- [ ] `npm install` — без ошибок
-- [ ] `npm run build` — без ошибок
+```typescript
+name: "get_seller_balance"
+description: "Текущий баланс продавца: доступные средства и сумма к ближайшей выплате. Лимит: 1 req/min."
+WB Endpoint: GET https://finance-api.wildberries.ru/api/v1/account/balance
+Rate limit: 1 req/min. Токен: Finance
+```
+
+Добавить в BASE_URLS: `finance: "https://finance-api.wildberries.ru"`
+
+Input: нет.
+Returns: `{ currency: string, current: number, for_withdraw: number }`
+
+Тесты: happy path, 401.
+
+**Чеклист v0.2.0:**
 - [ ] `npm test` — все тесты проходят
-- [ ] `node dist/index.js` без токена — понятная ошибка
-- [ ] `WB_API_TOKEN=test node dist/index.js` — сервер стартует
-- [ ] README.ru.md содержит быстрый старт, список tools, примеры
-- [ ] README.md содержит English version
-- [ ] examples/claude-desktop.json корректен
-- [ ] .env.example существует
-- [ ] LICENSE — MIT
-- [ ] .gitignore покрывает node_modules, dist, .env
-- [ ] package.json имеет bin, files, keywords, repository
+- [ ] `npm run build` — без ошибок
+- [ ] Все 13 инструментов видны в Claude Desktop
+- [ ] reply_question работает в sandbox
+- [ ] get_financial_report возвращает данные с комиссиями
+- [ ] get_seller_balance возвращает баланс
+- [ ] CHANGELOG.md обновлён
+- [ ] README.ru.md — таблица обновлена (13 инструментов)
 
-Если что-то не проходит — исправь.
+```bash
+npm version minor   # 0.1.0 → 0.2.0
+npm publish
+```
 
-Коммит: `chore: final checks and fixes for v0.1.0 release`
+Коммит: `feat: get_seller_balance, finance.ts, release v0.2.0`
 
 ---
 
-## Что дальше (не в скоупе этого файла)
+## ⏳ v0.3.0 — Phase 2 (задачи 14-16)
 
-После выполнения задач 1-10 у тебя будет готовый к публикации wb-mcp-server v0.1.0.
-Следующие шаги (отдельный TASKS файл):
-- Добавить tools для цен (get_prices, update_prices)
-- Добавить tools для поставок (get_supplies, create_supply)
-- Добавить tools для вопросов покупателей (answer_question)
-- Создать Telegram-бот с LangGraph (отдельный репозиторий)
-- Написать статью для Хабр
+Нужна перед стартом Ads Agent и Supply Agent в wb-seller-agent (неделя 9 Гантта).
+
+---
+
+### ЗАДАЧА 14: get_advert_balance + update_advert_bid
+
+Файл: `src/tools/advertising.ts` (добавить к существующим)
+
+#### get_advert_balance
+```typescript
+name: "get_advert_balance"
+description: "Баланс рекламного кабинета продавца: доступные средства и бонусы."
+WB Endpoint: GET https://advert-api.wildberries.ru/adv/v1/balance
+Токен: Promotion
+```
+Input: нет. Returns: `{ balance: number, net: number, bonus: number }`
+
+#### update_advert_bid
+```typescript
+name: "update_advert_bid"
+description: "⚠️ ИЗМЕНИТЬ ставки в кампании. ВНИМАНИЕ: немедленно влияет на показы и расход бюджета.
+Только для кампаний в статусах 4 (готова), 9 (активна), 11 (на паузе)."
+WB Endpoint: PATCH https://advert-api.wildberries.ru/api/advert/v1/bids
+Токен: Promotion
+```
+Input:
+```typescript
+{
+  advertId: z.number().describe("ID кампании"),
+  type: z.number().describe("Тип кампании (из get_advert_list)"),
+  bids: z.array(z.object({
+    nm: z.number().describe("Артикул WB (nmId)"),
+    price: z.number().describe("Новая ставка в копейках")
+  }))
+}
+```
+
+Коммит: `feat: get_advert_balance, update_advert_bid`
+
+---
+
+### ЗАДАЧА 15: get_prices + update_prices
+
+Файл: `src/tools/prices.ts` (уже есть заготовка, дополнить)
+
+#### get_prices
+```typescript
+name: "get_prices"
+description: "Текущие цены и скидки по товарам продавца."
+WB Endpoint: GET https://discounts-prices-api.wildberries.ru/api/v2/list/goods/filter
+Токен: Prices
+```
+Input: `{ limit: max 1000, offset: default 0, filterNmID?: number }`
+
+#### update_prices
+```typescript
+name: "update_prices"
+description: "⚠️ ИЗМЕНИТЬ цены и/или скидки. ВНИМАНИЕ: изменения немедленно вступают в силу на WB."
+WB Endpoint: POST https://discounts-prices-api.wildberries.ru/api/v2/upload/task
+Токен: Prices
+```
+Input: `{ data: array<{ nmID: number, price: number (рубли), discount: number (0-99) }> }`
+
+Коммит: `feat: get_prices, update_prices`
+
+---
+
+### ЗАДАЧА 16: get_warehouses_inventory + публикация v0.3.0
+
+Файл: `src/tools/analytics.ts` (добавить к существующим)
+
+```typescript
+name: "get_warehouses_inventory"
+description: "Актуальный отчёт по остаткам на складах. Точнее get_stocks для оперативного управления.
+Асинхронный: создаёт задачу, ожидает готовности (polling), возвращает данные."
+WB Endpoint (создать): GET https://statistics-api.wildberries.ru/api/v1/warehouse_remains
+WB Endpoint (статус):  GET .../tasks/{task_id}/status
+WB Endpoint (скачать): GET .../tasks/{task_id}/download
+Токен: Statistics
+```
+
+Реализация:
+```typescript
+// 1. создать задачу → task_id
+// 2. polling каждые 5 сек, макс 60 сек
+// 3. статус "done" → скачать и вернуть данные
+// 4. timeout → вернуть ошибку с подсказкой попробовать позже
+```
+
+**Чеклист v0.3.0:**
+- [ ] `npm test` — все тесты проходят
+- [ ] Все 18 инструментов видны в Claude Desktop
+- [ ] update_advert_bid и update_prices — предупреждения в описаниях
+- [ ] get_warehouses_inventory — polling работает
+- [ ] CHANGELOG.md обновлён
+- [ ] README.ru.md — таблица обновлена (18 инструментов)
+
+```bash
+npm version minor   # 0.2.0 → 0.3.0
+npm publish
+```
+
+Коммит: `feat: get_warehouses_inventory, release v0.3.0`
+
+---
+
+## ⏳ v0.4.0 — Phase 3 (задачи 17-19)
+
+Нужна перед расширенными сценариями: контент карточек, управление поставками, документы, поисковая аналитика.
+
+---
+
+### ЗАДАЧА 17: get_content_cards
+
+Новый файл: `src/tools/content.ts`
+
+```typescript
+name: "get_content_cards"
+description: "Карточки товаров продавца: название, характеристики, артикул, категория, бренд.
+Полезно агентам для получения названия товара при работе с отзывами и аналитикой."
+WB Endpoint: POST https://content-api.wildberries.ru/content/v2/get/cards/list
+Токен: Content
+```
+
+Input:
+```typescript
+{
+  settings: z.object({
+    cursor: z.object({
+      limit: z.number().max(100).default(100),
+      updatedAt: z.string().optional(),
+      nmID: z.number().optional()
+    }),
+    filter: z.object({
+      withPhoto: z.number().optional(),
+      textSearch: z.string().optional(),
+      allowedCategoriesOnly: z.boolean().optional()
+    }).optional()
+  })
+}
+```
+
+Добавить в BASE_URLS: `content: "https://content-api.wildberries.ru"`
+
+Pagination: cursor-based — брать cursor из ответа и передавать в следующий запрос.
+
+Тесты: happy path, cursor pagination, пустой список.
+
+Коммит: `feat: get_content_cards, content.ts`
+
+---
+
+### ЗАДАЧА 18: get_supplies + create_supply
+
+Файл: `src/tools/supplies.ts` (уже есть заготовка, дополнить)
+
+#### get_supplies
+```typescript
+name: "get_supplies"
+description: "Список поставок FBO: статус, дата создания, склад, количество товаров."
+WB Endpoint: GET https://marketplace-api.wildberries.ru/api/v3/supplies
+Токен: Marketplace
+```
+Input: `{ limit: default 1000 max 1000, next: cursor default 0, status?: "NEW"|"ACCEPTED"|"SORTED" }`
+Returns: `array<{ id, done, createdAt, closedAt, name, warehouseId, warehouseName, cargoType }>`
+
+#### create_supply
+```typescript
+name: "create_supply"
+description: "⚠️ СОЗДАТЬ новую поставку FBO в личном кабинете WB.
+ВНИМАНИЕ: создаёт реальную поставку. Используй только после явного подтверждения пользователем."
+WB Endpoint: POST https://marketplace-api.wildberries.ru/api/v3/supplies
+Токен: Marketplace
+```
+Input: `{ name: z.string().describe("Название поставки") }`
+Returns: `{ id: number }`
+
+Добавить в BASE_URLS: `marketplace: "https://marketplace-api.wildberries.ru"`
+
+Коммит: `feat: get_supplies, create_supply`
+
+---
+
+### ЗАДАЧА 19: get_documents + search_analytics + публикация v0.4.0
+
+#### get_documents — новый файл `src/tools/documents.ts`
+```typescript
+name: "get_documents"
+description: "Финансовые документы продавца: акты, отчёты, счета со ссылками для скачивания."
+WB Endpoint: GET https://documents-api.wildberries.ru/api/v1/documents/list
+Токен: Documents
+```
+Input: `{ locale: default "ru", beginTime?: ISO date, endTime?: ISO date, sort?: "date"|"category" }`
+
+Добавить в BASE_URLS: `documents: "https://documents-api.wildberries.ru"`
+
+#### search_analytics — добавить в `src/tools/analytics.ts`
+```typescript
+name: "search_analytics"
+description: "⚠️ ТРЕБУЕТ подписку «Джем» в личном кабинете WB. Без подписки вернёт ошибку 403.
+Поисковые запросы покупателей по товарам: частота запросов, позиции, клики, конверсии в корзину."
+WB Endpoint: POST https://seller-analytics-api.wildberries.ru/api/v2/analytics/search-report
+Токен: Analytics + подписка «Джем»
+```
+Input:
+```typescript
+{
+  nmIds: z.array(z.number()).describe("Артикулы WB для анализа"),
+  dateFrom: z.string().describe("Начало периода, ISO"),
+  dateTo: z.string().describe("Конец периода, ISO"),
+  page: z.number().default(1)
+}
+```
+
+**Чеклист v0.4.0:**
+- [ ] `npm test` — все тесты проходят
+- [ ] Все 22 инструмента видны в Claude Desktop
+- [ ] create_supply и update_prices — предупреждения в описаниях
+- [ ] search_analytics — предупреждение про «Джем» в описании, корректно возвращает ошибку при 403
+- [ ] get_content_cards — pagination работает
+- [ ] CHANGELOG.md обновлён
+- [ ] README.ru.md — таблица обновлена (22 инструмента)
+
+```bash
+npm version minor   # 0.3.0 → 0.4.0
+npm publish
+```
+
+Коммит: `feat: get_documents, search_analytics, release v0.4.0`
+
+---
+
+## Итоговая карта всех 22 инструментов
+
+```
+v0.1.0 ✅  feedbacks.ts:    get_feedbacks, reply_feedback,
+                             get_unanswered_count, get_questions
+           statistics.ts:   get_stocks, get_orders, get_sales
+           analytics.ts:    get_nm_report
+           advertising.ts:  get_advert_list, get_advert_stats
+           Итого: 10
+
+v0.2.0 🔧  feedbacks.ts:   + reply_question
+           statistics.ts:  + get_financial_report
+           finance.ts:     + get_seller_balance (новый файл)
+           Итого: +3 = 13
+
+v0.3.0 ⏳  advertising.ts: + get_advert_balance, update_advert_bid
+           prices.ts:      + get_prices, update_prices
+           analytics.ts:   + get_warehouses_inventory
+           Итого: +5 = 18
+
+v0.4.0 ⏳  content.ts:     + get_content_cards (новый файл)
+           supplies.ts:    + get_supplies, create_supply
+           documents.ts:   + get_documents (новый файл)
+           analytics.ts:   + search_analytics (⚠️ требует «Джем»)
+           Итого: +4 = 22
+```
