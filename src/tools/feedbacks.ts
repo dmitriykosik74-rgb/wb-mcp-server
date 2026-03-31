@@ -83,6 +83,83 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
     },
   );
 
+  // get_questions
+  server.tool(
+    "get_questions",
+    "Получить список вопросов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст вопроса, дату, информацию о товаре и ответ продавца (если есть).",
+    {
+      isAnswered: z.boolean().describe("true — отвеченные вопросы, false — неотвеченные"),
+      take: z.number().min(1).max(10000).default(50).describe("Количество вопросов (макс 10000)"),
+      skip: z.number().default(0).describe("Смещение для пагинации"),
+      order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате"),
+      nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)"),
+    },
+    async (args) => {
+      try {
+        const params: Record<string, any> = {
+          isAnswered: args.isAnswered,
+          take: args.take,
+          skip: args.skip,
+          order: args.order,
+        };
+        if (args.nmId !== undefined) {
+          params.nmId = args.nmId;
+        }
+
+        const data = await client.get<any>(BASE_URLS.feedbacks, "/api/v1/questions", params);
+
+        const questions = (data.data?.questions ?? []).map((q: any) => ({
+          id: q.id,
+          text: q.text,
+          answer: q.answer?.text ?? null,
+          createdDate: q.createdDate,
+          productDetails: {
+            nmId: q.productDetails?.nmId,
+            productName: q.productDetails?.productName,
+            supplierArticle: q.productDetails?.supplierArticle,
+          },
+          userName: q.userName,
+        }));
+
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(questions, null, 2) }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text" as const, text: formatError(error) }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // reply_question
+  server.tool(
+    "reply_question",
+    "⚠️ ОТВЕТИТЬ на вопрос покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой.",
+    {
+      id: z.string().describe("ID вопроса (получите через get_questions)"),
+      text: z.string().min(1).describe("Текст ответа на вопрос"),
+    },
+    async (args) => {
+      try {
+        await client.patch<any>(BASE_URLS.feedbacks, "/api/v1/questions", {
+          id: args.id,
+          text: args.text,
+        });
+
+        return {
+          content: [{ type: "text" as const, text: "Ответ на вопрос успешно отправлен." }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: "text" as const, text: formatError(error) }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // get_unanswered_count
   server.tool(
     "get_unanswered_count",

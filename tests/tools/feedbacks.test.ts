@@ -127,6 +127,88 @@ describe("feedbacks tools", () => {
     });
   });
 
+  describe("get_questions", () => {
+    it("returns formatted questions", async () => {
+      (client.get as any).mockResolvedValue({
+        data: {
+          questions: [
+            {
+              id: "q-1",
+              text: "Какой размер выбрать?",
+              answer: { text: "Рекомендуем M" },
+              createdDate: "2024-01-15T10:00:00Z",
+              productDetails: {
+                nmId: 12345,
+                productName: "Футболка",
+                supplierArticle: "ART-001",
+              },
+              userName: "Мария",
+            },
+          ],
+        },
+      });
+
+      const result = await callTool(server, "get_questions", {
+        isAnswered: true,
+        take: 50,
+        skip: 0,
+        order: "dateDesc",
+      });
+
+      expect(result.isError).toBeUndefined();
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].id).toBe("q-1");
+      expect(parsed[0].answer).toBe("Рекомендуем M");
+      expect(parsed[0].productDetails.nmId).toBe(12345);
+    });
+
+    it("returns empty array when no questions", async () => {
+      (client.get as any).mockResolvedValue({ data: { questions: [] } });
+
+      const result = await callTool(server, "get_questions", {
+        isAnswered: false,
+        take: 50,
+        skip: 0,
+        order: "dateDesc",
+      });
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toHaveLength(0);
+    });
+  });
+
+  describe("reply_question", () => {
+    it("sends reply successfully", async () => {
+      (client.patch as any).mockResolvedValue({});
+
+      const result = await callTool(server, "reply_question", {
+        id: "q-1",
+        text: "Рекомендуем размер M",
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain("успешно");
+      expect(client.patch).toHaveBeenCalledWith(
+        expect.any(String),
+        "/api/v1/questions",
+        { id: "q-1", text: "Рекомендуем размер M" },
+      );
+    });
+
+    it("returns error on 401", async () => {
+      (client.patch as any).mockRejectedValue(new WBApiError(401, "unauthorized", "Неавторизован"));
+
+      const result = await callTool(server, "reply_question", {
+        id: "q-1",
+        text: "Ответ",
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("401");
+    });
+  });
+
   describe("get_unanswered_count", () => {
     it("returns count", async () => {
       (client.get as any).mockResolvedValue({ data: 42 });
