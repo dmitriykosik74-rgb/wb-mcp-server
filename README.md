@@ -54,19 +54,40 @@ Create an API token in your [WB Seller Dashboard](https://seller.wildberries.ru/
 >
 > This commonly happens with the Microsoft Store version of Claude Desktop, which doesn't see the global npm packages path.
 
-## Available Tools
+## Available Tools (13)
+
+### Reviews & Questions
 
 | Tool | Description | Type |
 |---|---|---|
 | `get_feedbacks` | Get customer reviews | read |
 | `reply_feedback` | Reply to a review | **write** |
+| `get_questions` | Get customer questions | read |
+| `reply_question` | Reply to a question | **write** |
 | `get_unanswered_count` | Count of unanswered reviews | read |
+
+### Statistics & Analytics
+
+| Tool | Description | Type |
+|---|---|---|
 | `get_stocks` | Warehouse stock levels | read |
 | `get_orders` | Recent orders | read |
 | `get_sales` | Sales data | read |
+| `get_financial_report` | Detailed report: commissions, logistics, storage, penalties | read |
 | `get_nm_report` | Per-product report (views, cart, orders, buyouts) | read |
+
+### Advertising
+
+| Tool | Description | Type |
+|---|---|---|
 | `get_advert_list` | Advertising campaigns list | read |
 | `get_advert_stats` | Campaign statistics | read |
+
+### Finance
+
+| Tool | Description | Type |
+|---|---|---|
+| `get_seller_balance` | Current seller account balance | read |
 
 ## Configuration
 

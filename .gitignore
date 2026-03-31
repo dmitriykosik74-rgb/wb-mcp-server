@@ -4,3 +4,4 @@ dist/
 *.js
 !tsup.config.ts
 !vitest.config.ts
+WB_Agent_Gantt_Roadmap_v4.html
