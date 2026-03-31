@@ -49,7 +49,7 @@ describe("analytics tools", () => {
       expect(client.post).toHaveBeenCalledWith(
         expect.any(String),
         "/api/analytics/v3/sales-funnel/products",
-        { currentPeriod: { start: "2024-01-01", end: "2024-01-31" }, pageNumber: 1, pageSize: 100 },
+        { selectedPeriod: { start: "2024-01-01", end: "2024-01-31" }, pageNumber: 1, pageSize: 100 },
       );
     });
   });

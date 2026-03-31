@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     globals: true,
     passWithNoTests: true,
-    pool: "forks",
+    pool: "threads",
   },
 });

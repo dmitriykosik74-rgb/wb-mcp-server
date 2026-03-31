@@ -7,9 +7,11 @@ const FINANCE_RATE_LIMIT = 1; // 1 req/min
 
 export function registerFinanceTools(server: McpServer, client: WBClient): void {
   // get_seller_balance
-  server.tool(
+  server.registerTool(
     "get_seller_balance",
-    "Текущий баланс продавца: доступные средства и сумма к ближайшей выплате. Лимит: 1 запрос в минуту.",
+    {
+      description: "Текущий баланс продавца: доступные средства и сумма к ближайшей выплате. Лимит: 1 запрос в минуту.",
+    },
     async () => {
       try {
         await client.rateLimiter.waitIfNeeded("finance", FINANCE_RATE_LIMIT);

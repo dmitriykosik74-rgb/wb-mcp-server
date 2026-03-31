@@ -8,11 +8,13 @@ const STATISTICS_RATE_LIMIT = 1; // 1 req/min
 
 export function registerStatisticsTools(server: McpServer, client: WBClient): void {
   // get_stocks
-  server.tool(
+  server.registerTool(
     "get_stocks",
-    "Получить текущие остатки товаров на складах WB. Данные обновляются каждые 30 минут. Лимит: 1 запрос в минуту.",
     {
-      dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
+      description: "Получить текущие остатки товаров на складах WB. Данные обновляются каждые 30 минут. Лимит: 1 запрос в минуту.",
+      inputSchema: {
+        dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
+      },
     },
     async (args) => {
       try {
@@ -42,12 +44,14 @@ export function registerStatisticsTools(server: McpServer, client: WBClient): vo
   );
 
   // get_orders
-  server.tool(
+  server.registerTool(
     "get_orders",
-    "Получить список заказов. Данные хранятся до 90 дней. Лимит: 1 запрос в минуту.",
     {
-      dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
-      flag: z.number().optional().describe("0 — все заказы с указанной даты, 1 — только обновлённые"),
+      description: "Получить список заказов. Данные хранятся до 90 дней. Лимит: 1 запрос в минуту.",
+      inputSchema: {
+        dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
+        flag: z.number().optional().describe("0 — все заказы с указанной даты, 1 — только обновлённые"),
+      },
     },
     async (args) => {
       try {
@@ -72,12 +76,14 @@ export function registerStatisticsTools(server: McpServer, client: WBClient): vo
   );
 
   // get_sales
-  server.tool(
+  server.registerTool(
     "get_sales",
-    "Получить данные о продажах (выкупах). Включает сумму к оплате продавцу. Лимит: 1 запрос в минуту.",
     {
-      dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
-      flag: z.number().optional().describe("0 — все продажи с указанной даты, 1 — только обновлённые"),
+      description: "Получить данные о продажах (выкупах). Включает сумму к оплате продавцу. Лимит: 1 запрос в минуту.",
+      inputSchema: {
+        dateFrom: z.string().describe("Дата начала в формате ISO, например 2024-01-01"),
+        flag: z.number().optional().describe("0 — все продажи с указанной даты, 1 — только обновлённые"),
+      },
     },
     async (args) => {
       try {
@@ -102,17 +108,19 @@ export function registerStatisticsTools(server: McpServer, client: WBClient): vo
   );
 
   // get_financial_report
-  server.tool(
+  server.registerTool(
     "get_financial_report",
-    `Детализация отчёта реализации WB: комиссии, логистика, хранение, штрафы, сумма к оплате.
+    {
+      description: `Детализация отчёта реализации WB: комиссии, логистика, хранение, штрафы, сумма к оплате.
 Используй для расчёта реального P&L. Лимит: 1 запрос в минуту.
 Ключевые поля: ppvz_for_pay (сумма к выплате), delivery_rub (логистика), storage_fee (хранение), penalty (штрафы), commission_percent (комиссия WB), retail_amount (розничная выручка).
 При >100000 строк — использовать пагинацию через параметр rrdid.`,
-    {
-      dateFrom: z.string().describe("Начало периода, ISO datetime, например 2026-03-01"),
-      dateTo: z.string().describe("Конец периода, ISO datetime"),
-      limit: z.number().max(100000).default(100000).describe("Максимум строк (до 100000)"),
-      rrdid: z.number().default(0).describe("ID последней строки для пагинации (0 = первый запрос)"),
+      inputSchema: {
+        dateFrom: z.string().describe("Начало периода, ISO datetime, например 2026-03-01"),
+        dateTo: z.string().describe("Конец периода, ISO datetime"),
+        limit: z.number().max(100000).default(100000).describe("Максимум строк (до 100000)"),
+        rrdid: z.number().default(0).describe("ID последней строки для пагинации (0 = первый запрос)"),
+      },
     },
     async (args) => {
       try {

@@ -192,7 +192,7 @@ describe("feedbacks tools", () => {
       expect(client.patch).toHaveBeenCalledWith(
         expect.any(String),
         "/api/v1/questions",
-        { id: "q-1", text: "Рекомендуем размер M" },
+        { id: "q-1", text: "Рекомендуем размер M", state: "wbGoodsDetails" },
       );
     });
 
@@ -211,7 +211,7 @@ describe("feedbacks tools", () => {
 
   describe("get_unanswered_count", () => {
     it("returns count", async () => {
-      (client.get as any).mockResolvedValue({ data: 42 });
+      (client.get as any).mockResolvedValue({ data: { countUnanswered: 42, countUnansweredToday: 5 } });
 
       const result = await callTool(server, "get_unanswered_count");
 

@@ -6,15 +6,17 @@ import { formatError } from "../utils/errors.js";
 
 export function registerFeedbackTools(server: McpServer, client: WBClient): void {
   // get_feedbacks
-  server.tool(
+  server.registerTool(
     "get_feedbacks",
-    "Получить список отзывов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст отзыва, оценку, дату, информацию о товаре и ответ продавца (если есть).",
     {
-      isAnswered: z.boolean().describe("true — отвеченные отзывы, false — неотвеченные"),
-      take: z.number().min(1).max(10000).default(50).describe("Количество отзывов (макс 10000)"),
-      skip: z.number().default(0).describe("Смещение для пагинации"),
-      order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате"),
-      nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)"),
+      description: "Получить список отзывов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст отзыва, оценку, дату, информацию о товаре и ответ продавца (если есть).",
+      inputSchema: {
+        isAnswered: z.boolean().describe("true — отвеченные отзывы, false — неотвеченные"),
+        take: z.number().min(1).max(10000).default(50).describe("Количество отзывов (макс 10000)"),
+        skip: z.number().default(0).describe("Смещение для пагинации"),
+        order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате"),
+        nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)"),
+      },
     },
     async (args) => {
       try {
@@ -57,12 +59,15 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
   );
 
   // reply_feedback
-  server.tool(
+  server.registerTool(
     "reply_feedback",
-    "⚠️ ОТВЕТИТЬ на отзыв покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой. Ответ можно отредактировать только 1 раз в течение 60 дней.",
     {
-      id: z.string().describe("ID отзыва (получите через get_feedbacks)"),
-      text: z.string().min(2).max(5000).describe("Текст ответа на отзыв (2-5000 символов)"),
+      description: "⚠️ ОТВЕТИТЬ на отзыв покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой. Ответ можно отредактировать только 1 раз в течение 60 дней.",
+      inputSchema: {
+        id: z.string().describe("ID отзыва (получите через get_feedbacks)"),
+        text: z.string().min(2).max(5000).describe("Текст ответа на отзыв (2-5000 символов)"),
+      },
+      annotations: { destructiveHint: true },
     },
     async (args) => {
       try {
@@ -84,15 +89,17 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
   );
 
   // get_questions
-  server.tool(
+  server.registerTool(
     "get_questions",
-    "Получить список вопросов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст вопроса, дату, информацию о товаре и ответ продавца (если есть).",
     {
-      isAnswered: z.boolean().describe("true — отвеченные вопросы, false — неотвеченные"),
-      take: z.number().min(1).max(10000).default(50).describe("Количество вопросов (макс 10000)"),
-      skip: z.number().default(0).describe("Смещение для пагинации"),
-      order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате"),
-      nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)"),
+      description: "Получить список вопросов покупателей. Можно фильтровать по отвеченным/неотвеченным. Возвращает текст вопроса, дату, информацию о товаре и ответ продавца (если есть).",
+      inputSchema: {
+        isAnswered: z.boolean().describe("true — отвеченные вопросы, false — неотвеченные"),
+        take: z.number().min(1).max(10000).default(50).describe("Количество вопросов (макс 10000)"),
+        skip: z.number().default(0).describe("Смещение для пагинации"),
+        order: z.enum(["dateAsc", "dateDesc"]).default("dateDesc").describe("Сортировка по дате"),
+        nmId: z.number().optional().describe("Фильтр по артикулу WB (необязательно)"),
+      },
     },
     async (args) => {
       try {
@@ -134,18 +141,22 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
   );
 
   // reply_question
-  server.tool(
+  server.registerTool(
     "reply_question",
-    "⚠️ ОТВЕТИТЬ на вопрос покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой.",
     {
-      id: z.string().describe("ID вопроса (получите через get_questions)"),
-      text: z.string().min(1).describe("Текст ответа на вопрос"),
+      description: "⚠️ ОТВЕТИТЬ на вопрос покупателя. ВНИМАНИЕ: это действие отправляет реальный ответ, который увидит покупатель! Убедитесь, что текст корректен перед отправкой.",
+      inputSchema: {
+        id: z.string().describe("ID вопроса (получите через get_questions)"),
+        text: z.string().min(1).describe("Текст ответа на вопрос"),
+      },
+      annotations: { destructiveHint: true },
     },
     async (args) => {
       try {
         await client.patch<any>(BASE_URLS.feedbacks, "/api/v1/questions", {
           id: args.id,
           text: args.text,
+          state: "wbGoodsDetails",
         });
 
         return {
@@ -161,18 +172,20 @@ export function registerFeedbackTools(server: McpServer, client: WBClient): void
   );
 
   // get_unanswered_count
-  server.tool(
+  server.registerTool(
     "get_unanswered_count",
-    "Получить количество неотвеченных отзывов. Полезно для быстрой проверки: есть ли новые отзывы, требующие ответа.",
+    {
+      description: "Получить количество неотвеченных отзывов. Полезно для быстрой проверки: есть ли новые отзывы, требующие ответа.",
+    },
     async () => {
       try {
-        const data = await client.get<{ data: number }>(
+        const data = await client.get<{ data: { countUnanswered: number; countUnansweredToday: number } }>(
           BASE_URLS.feedbacks,
           "/api/v1/feedbacks/count-unanswered",
         );
 
         return {
-          content: [{ type: "text" as const, text: `Неотвеченных отзывов: ${data.data}` }],
+          content: [{ type: "text" as const, text: `Неотвеченных отзывов: ${data.data?.countUnanswered ?? 0} (из них сегодня: ${data.data?.countUnansweredToday ?? 0})` }],
         };
       } catch (error) {
         return {
