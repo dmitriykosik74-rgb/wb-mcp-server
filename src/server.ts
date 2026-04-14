@@ -6,6 +6,7 @@ import { registerStatisticsTools } from "./tools/statistics.js";
 import { registerAnalyticsTools } from "./tools/analytics.js";
 import { registerAdvertisingTools } from "./tools/advertising.js";
 import { registerFinanceTools } from "./tools/finance.js";
+import { registerPricesTools } from "./tools/prices.js";
 
 export class WBMCPServer {
   public mcpServer: McpServer;
@@ -29,6 +30,7 @@ export class WBMCPServer {
     registerAnalyticsTools(this.mcpServer, this.wbClient);
     registerAdvertisingTools(this.mcpServer, this.wbClient);
     registerFinanceTools(this.mcpServer, this.wbClient);
+    registerPricesTools(this.mcpServer, this.wbClient);
   }
 
   async start(): Promise<void> {

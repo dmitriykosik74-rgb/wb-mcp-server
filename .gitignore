@@ -11,3 +11,5 @@ TASKS.md
 VISION.md
 cast_dev/
 .claude/
+docs/
+test-api.mts
