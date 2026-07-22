@@ -1,10 +1,10 @@
 # wb-mcp-server
 
-> **⚠️ This project has evolved into [Artel AI](https://artelai.ru).**
-> The Claude Desktop installer and the Pro subscription now live at **[artelai.ru](https://artelai.ru)** and the Telegram bot **[@artellight_bot](https://t.me/artellight_bot)**.
-> This repository is **frozen** (the historical open-source version). The npm package `wb-mcp-server` now installs the current Artel build — free features work without a key.
+> **⚠️ Проект вырос в [Artel AI](https://artelai.ru).**
+> Установщик для Claude Desktop и Pro-подписка теперь — на **[artelai.ru](https://artelai.ru)** и в Telegram-боте **[@artellight_bot](https://t.me/artellight_bot)**.
+> Репозиторий **заморожен** (историческая open-source версия). Пакет npm `wb-mcp-server` теперь ставит актуальную сборку Artel — бесплатные функции работают без ключа.
 >
-> **Проект вырос в [Artel AI](https://artelai.ru).** Установщик для Claude Desktop и Pro-подписка — на **[artelai.ru](https://artelai.ru)** и в боте **[@artellight_bot](https://t.me/artellight_bot)**. Репозиторий заморожен (историческая open-source версия).
+> **This project has evolved into [Artel AI](https://artelai.ru).** The Claude Desktop installer and the Pro subscription now live at **[artelai.ru](https://artelai.ru)** and the Telegram bot **[@artellight_bot](https://t.me/artellight_bot)**. This repository is frozen (the historical open-source version).
 
 [![npm version](https://img.shields.io/npm/v/wb-mcp-server)](https://www.npmjs.com/package/wb-mcp-server)
 [![license](https://img.shields.io/npm/l/wb-mcp-server)](LICENSE)
