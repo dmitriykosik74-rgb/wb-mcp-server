@@ -1,36 +1,32 @@
-# wb-mcp-server — historical repository
+# wb-mcp-server — исторический репозиторий
 
-[Русская версия](README.ru.md)
+[English version](README.en.md)
 
 > [!IMPORTANT]
-> Do not use the old installation and Claude Desktop configuration instructions
-> from this repository. This open-source version is no longer maintained.
+> Не используйте старые инструкции по установке и ручной настройке Claude
+> Desktop из этого репозитория. Эта open-source версия больше не поддерживается.
 
-The project has evolved into **Artel AI** — a current Claude Desktop integration
-for Wildberries sellers with ready-to-run investigations and Pro workflows.
+Проект вырос в **Artel AI** — актуальную интеграцию с Claude Desktop для
+селлеров Wildberries с готовыми расследованиями и комплексными Pro-сценариями
+принятия решений.
 
-- **Current installer and setup guide:** [artelai.ru/product](https://artelai.ru/product/)
-- **Telegram bot:** [@artellight_bot](https://t.me/artellight_bot)
-- **Current npm package:** [`wb-mcp-server`](https://www.npmjs.com/package/wb-mcp-server)
+- **Актуальный установщик и инструкция:** [artelai.ru/product](https://artelai.ru/product/)
+- **Telegram-бот:** [@artellight_bot](https://t.me/artellight_bot)
 
-## If you used this repository before
+## Если вы раньше устанавливали сервер из этого репозитория
 
-1. Remove the old manually configured `wb-mcp-server` entry from Claude Desktop.
-2. Download the current `.mcpb` installer from the website or Telegram bot.
-3. Install it in Claude Desktop and enter your Wildberries API token.
-4. Add an Artel Pro license key only if you use Pro workflows.
+1. Удалите старую ручную запись `wb-mcp-server` из конфигурации Claude Desktop.
+2. Скачайте актуальный установщик `.mcpb` с сайта или через Telegram-бота.
+3. Установите его в Claude Desktop и укажите API-токен Wildberries.
+4. Ключ Artel Pro нужен только для запуска Pro-сценариев.
 
-The npm package name `wb-mcp-server` now points to the current Artel build. Do
-not combine it with the legacy JSON configuration published in this repository.
+## Исторический код и документация
 
-## Historical source and documentation
+Репозиторий остаётся публичным и не архивируется. Исходный код и история задач
+сохранены для справки, но развитие продукта продолжается в Artel AI.
 
-This repository remains public as a reference and is not archived. Its source
-code and issue history are preserved, but feature development happens in Artel
-AI.
-
-- [Legacy documentation in English](LEGACY.md)
 - [Архивная документация на русском](LEGACY.ru.md)
-- [Last legacy v0.4.3 source snapshot](https://github.com/dmitriykosik74-rgb/wb-mcp-server/tree/ba706d81dd6e15817e4ed7042ae4e980601e154f)
+- [Legacy documentation in English](LEGACY.md)
+- [Последний снимок исходного кода v0.4.3](https://github.com/dmitriykosik74-rgb/wb-mcp-server/tree/ba706d81dd6e15817e4ed7042ae4e980601e154f)
 
-Licensed under the [MIT License](LICENSE).
+Код распространяется по лицензии [MIT](LICENSE).
