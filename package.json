@@ -1,7 +1,8 @@
 {
   "name": "wb-mcp-server",
   "version": "0.4.3",
-  "description": "MCP server for Wildberries Seller API — connect AI agents to your WB store",
+  "private": true,
+  "description": "Historical open-source version of wb-mcp-server. Use Artel AI for the current product.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -28,7 +29,7 @@
     "type": "git",
     "url": "git+https://github.com/dmitriykosik74-rgb/wb-mcp-server.git"
   },
-  "homepage": "https://github.com/dmitriykosik74-rgb/wb-mcp-server#readme",
+  "homepage": "https://artelai.ru/product/",
   "files": [
     "dist",
     "README.md",
