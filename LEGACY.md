@@ -7,7 +7,7 @@
 
 > **⚠️ Проект вырос в [Artel AI](https://artelai.ru/product/).**
 > Установщик для Claude Desktop и Pro-подписка теперь — на **[artelai.ru](https://artelai.ru/product/)** и в Telegram-боте **[@artellight_bot](https://t.me/artellight_bot)**.
-> Репозиторий **заморожен** (историческая open-source версия). Пакет npm `wb-mcp-server` теперь ставит актуальную сборку Artel — бесплатные функции работают без ключа.
+> Репозиторий **заморожен** (историческая open-source версия). Актуальная сборка Artel доступна через `@artellight_bot`; Free-ключ выдаётся подписчикам Telegram-канала.
 >
 > **This project has evolved into [Artel AI](https://artelai.ru/product/).** The Claude Desktop installer and the Pro subscription now live at **[artelai.ru](https://artelai.ru/product/)** and the Telegram bot **[@artellight_bot](https://t.me/artellight_bot)**. This repository is frozen (the historical open-source version).
 
